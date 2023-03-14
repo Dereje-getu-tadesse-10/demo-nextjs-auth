@@ -1,7 +1,23 @@
 import Head from 'next/head'
-
+import {Session} from "next-auth";
+import {getProviders, getSession, useSession} from "next-auth/react";
+import {signIn, signOut} from "next-auth/react";
+import {useState} from "react";
+import {NextPageContext} from "next";
 
 export default function Home() {
+    const { data: session, status } = useSession()
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
+    const handleLogin = (e: any) => {
+        e.preventDefault()
+        signIn('credentials', {
+            redirect: false,
+            email: email,
+            password: password,
+        })
+    }
+
   return (
     <>
       <Head>
@@ -14,6 +30,42 @@ export default function Home() {
          <h1 className="text-center">
              Boilerplate Next.js with Auth.js
          </h1>
+          <div className="flex justify-center">
+                <button onClick={() => signIn('google')} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    Sign in with Google
+                </button>
+              <button onClick={() => signIn('facebook')} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    Sign in with Facebook
+                </button>
+              <button onClick={() => signIn('github')} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    Sign in with Github
+                </button>
+          </div>
+          <button
+                onClick={() => signOut()}
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          >
+                Sign out
+          </button>
+
+            <form
+                onSubmit={handleLogin}
+            >
+                <input
+                    type="text"
+                    name="email"
+                    placeholder="email"
+                    onChange={(e) => setEmail(e.target.value)}
+                />
+                <input
+                    type="password"
+                    name="password"
+                    placeholder="password"
+                    onChange={(e) => setPassword(e.target.value)}
+                />
+                <button type="submit">Submit</button>
+            </form>
+
       </main>
     </>
   )
