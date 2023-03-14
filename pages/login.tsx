@@ -15,13 +15,25 @@ const loginSchema = z.object({
     .min(3, {message: "Password must be at least 8 characters."})
 });
 
+type LoginProps = {
+    csrfToken: string;
+    callbackUrl: string;
+    providers: [{
+        id: string;
+        name: string;
+    }]
+}
 
-export default function Login({csrfToken, callbackUrl}: { csrfToken: string; callbackUrl: string }) {
+export default function Login({csrfToken, callbackUrl, providers}: LoginProps) {
+
     const [error, setError] = useState<string | null>(null);
+
     const router = useRouter();
+
     const {register, handleSubmit, formState: {errors}} = useForm({
         resolver: zodResolver(loginSchema)
     });
+
     const onSubmit: SubmitHandler<FieldValues> = async (data) => {
         const result = await signIn("credentials", {
             redirect: false,
@@ -35,36 +47,8 @@ export default function Login({csrfToken, callbackUrl}: { csrfToken: string; cal
             setError(result.error);
         }
     }
-
-    const handleGoogleLogin = async () => {
-        const result = await signIn("google", {callbackUrl});
-        if (result?.ok) {
-            await router.push(callbackUrl);
-        }
-        if (result?.error) {
-            setError(result.error);
-        }
-    };
-
-    const handleFacebookLogin = async () => {
-        const result = await signIn("facebook", {callbackUrl});
-        if (result?.ok) {
-            await router.push(callbackUrl);
-        }
-        if (result?.error) {
-            setError(result.error);
-        }
-    }
-
-    const handleGithubLogin = async () => {
-        const result = await signIn("github", {callbackUrl});
-        if (result?.ok) {
-            await router.push(callbackUrl);
-        }
-        if (result?.error) {
-            setError(result.error);
-        }
-    }
+    if(!providers) return null;
+    const loginProviders = Object.values(providers).filter(provider => provider.name !== "Credentials");
 
     return (
           <>
@@ -74,44 +58,26 @@ export default function Login({csrfToken, callbackUrl}: { csrfToken: string; cal
                           Welcome back !
                       </h2>
                   </div>
-
                   <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
                       <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+                          {error && <p className="py-2 bg-red-500 text-center text-white text-sm rounded-md">{error}</p>}
 
                           { /** START: Sign in with social media */ }
+
                           <div className="mt-6">
                               <div className="mt-6 grid grid-cols-3 gap-3">
-                                  <div
-                                      onClick={handleFacebookLogin}
-                                      className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-[1.3rem] text-gray-500 hover:bg-gray-50 cursor-pointer"
-                                  >
-                                      <BsFacebook />
-                                  </div>
-
-                                  <div
-                                      onClick={handleGoogleLogin}
-                                      className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-[1.3rem] text-gray-500 hover:bg-gray-50 cursor-pointer"
-                                  >
-                                      <BsGoogle />
-                                  </div>
-
-                                  <div
-                                      onClick={handleGithubLogin}
-                                      className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-[1.3rem] text-gray-500 hover:bg-gray-50 cursor-pointer"
-                                  >
-                                        <BsGithub />
-                                  </div>
+                                    {loginProviders.map(provider => (
+                                        <div
+                                            key={provider.name}
+                                            onClick={() => signIn(provider.id)}
+                                            className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-[1.3rem] text-gray-500 hover:bg-gray-50 cursor-pointer"
+                                        >
+                                            {provider.name === "Google" && <BsGoogle />}
+                                            {provider.name === "Facebook" && <BsFacebook />}
+                                            {provider.name === "GitHub" && <BsGithub />}
+                                        </div>
+                                    ))}
                               </div>
-
-                              <div className="relative my-4">
-                                  <div className="absolute inset-0 flex items-center">
-                                      <div className="w-full border-t border-gray-300" />
-                                  </div>
-                                  <div className="relative flex justify-center text-sm">
-                                      <span className="px-2 bg-white text-gray-500">Or continue with</span>
-                                  </div>
-                              </div>
-
                           </div>
                           { /** END: Sign in with social media */ }
 
@@ -119,6 +85,7 @@ export default function Login({csrfToken, callbackUrl}: { csrfToken: string; cal
                           <form className="space-y-6"
                                 onSubmit={handleSubmit(onSubmit)}
                           >
+                              <input name="csrfToken" type="hidden" defaultValue={csrfToken} />
                               <div>
                                   <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                                       Email address
@@ -188,7 +155,7 @@ export default function Login({csrfToken, callbackUrl}: { csrfToken: string; cal
 }
 
 export async function getServerSideProps(ctx: NextPageContext) {
-    const {req, query} = ctx;
+    const { query } = ctx;
     const tab = query.tab ? query.tab : "login";
     const callbackUrl = query.callbackUrl ? query.callbackUrl : process.env.NEXTAUTH_URL;
     const csrfToken = await getCsrfToken(ctx);
