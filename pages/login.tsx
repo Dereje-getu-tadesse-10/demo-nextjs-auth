@@ -1,11 +1,12 @@
-import {NextPageContext} from "next";
-import {useRouter} from "next/router";
-import {getCsrfToken, getProviders, signIn} from "next-auth/react";
-import {z} from "zod";
-import {FieldValues, SubmitHandler, useForm} from "react-hook-form";
-import {zodResolver} from "@hookform/resolvers/zod";
-import {useState} from "react";
-import {BsFacebook, BsGithub, BsGoogle} from "react-icons/bs";
+import { NextPageContext } from "next";
+import { useRouter } from "next/router";
+import { getCsrfToken, getProviders, signIn } from "next-auth/react";
+import { z } from "zod";
+import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { BsFacebook, BsGithub, BsGoogle } from "react-icons/bs";
+import Link from "next/link";
 
 const loginSchema = z.object({
     email: z
@@ -69,7 +70,7 @@ export default function Login({csrfToken, callbackUrl, providers}: LoginProps) {
                                     {loginProviders.map(provider => (
                                         <div
                                             key={provider.name}
-                                            onClick={() => signIn(provider.id)}
+                                            onClick={() => signIn(provider.id, {callbackUrl})}
                                             className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-[1.3rem] text-gray-500 hover:bg-gray-50 cursor-pointer"
                                         >
                                             {provider.name === "Google" && <BsGoogle />}
@@ -147,6 +148,14 @@ export default function Login({csrfToken, callbackUrl, providers}: LoginProps) {
                               </div>
                           </form>
                           { /** END: Sign in with email */ }
+                          <div className="mt-6 flex justify-between">
+                              <p>
+                                  Don&#39;t have an account?
+                              </p>
+                              <Link href="/signup">
+                                  Sign up
+                              </Link>
+                          </div>
                       </div>
                   </div>
               </div>

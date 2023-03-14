@@ -32,13 +32,7 @@ export default async function handler(
         if (user) {
             return res
                 .status(400)
-                .json({ message: "This email address already exists." });
-        }
-
-        if (password.length < 6) {
-            return res
-                .status(400)
-                .json({ message: "Password must be atleast 6 characters." });
+                .json({ message: "This email address already exists.", status: 400 });
         }
 
         const cryptedPassword = await bcrypt.hash(password, 12);
@@ -53,6 +47,7 @@ export default async function handler(
 
         res.json({
             message: "User created successfully.",
+            status: 200
         });
 
     } catch (error) {

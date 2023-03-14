@@ -4,8 +4,12 @@ import {getProviders, getSession, useSession} from "next-auth/react";
 import {signIn, signOut} from "next-auth/react";
 import {useState} from "react";
 import {NextPageContext} from "next";
+import Link from "next/link";
 
 export default function Home() {
+    const {data: session} = useSession();
+
+    if (!session) return;
 
   return (
     <>
@@ -15,11 +19,22 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main>
-        <h1>
-            Home
-        </h1>
-          
+      <main className="min-h-screen flex justify-center">
+
+          {session?.user?.role === "ADMIN" ? (
+                <div className="flex flex-col items-center justify-center">
+                    <h1 className="text-2xl font-bold">Welcome {session?.user?.name} !</h1>
+                    <Link href={"/admin"} className="underline">
+                        Go to admin dashboard
+                    </Link>
+                </div>
+            ) : (
+                <div className="flex flex-col items-center justify-center">
+                    <h1 className="text-2xl font-bold">Welcome to the user dashboard {session?.user?.name}</h1>
+                    <button onClick={() => signOut()}>Sign out</button>
+                </div>
+          )}
+
       </main>
     </>
   )
