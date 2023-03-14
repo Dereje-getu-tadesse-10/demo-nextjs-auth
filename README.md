@@ -1,4 +1,4 @@
-### Role based authentication for Next.js apps using Auth.js and Supabase
+### Role based authentication for Next.js apps using Auth.js and Prisma
 
 __Admin access for demo :__
 ```
